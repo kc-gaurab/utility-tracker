@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Päivölänrinne 5 — Utility Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #faf8f4;
+    --surface: #ffffff;
+    --surface-2: #f3eee5;
+    --ink: #1a1814;
+    --ink-soft: #4a4640;
+    --ink-mute: #8a857c;
+    --line: #e5dfd2;
+    --accent: #b4530a;       /* warm rust */
+    --accent-soft: #f0d4b8;
+    --house-a: #2d6a4f;      /* deep green */
+    --house-a-soft: #c8e0d2;
+    --house-b: #6a4a8c;      /* aubergine */
+    --house-b-soft: #d8c8e6;
+    --good: #2d6a4f;
+    --bad: #9a3412;
+    --shadow: 0 1px 2px rgba(26,24,20,.04), 0 8px 24px rgba(26,24,20,.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  body { padding: 0; min-height: 100vh; }
+
+  /* Header */
+  header {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 28px 40px 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  header h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 32px; letter-spacing: -0.02em; }
+  header .subtitle { font-size: 13px; color: #c8c2b6; margin-top: 4px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; text-transform: uppercase; }
+
+  /* Nav tabs */
+  nav.tabs {
+    display: flex;
+    gap: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  nav.tabs button {
+    background: none;
+    border: none;
+    padding: 16px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-mute);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    letter-spacing: -0.005em;
+  }
+  nav.tabs button:hover { color: var(--ink); }
+  nav.tabs button.active { color: var(--ink); border-bottom-color: var(--accent); }
+
+  /* Layout */
+  main { padding: 32px 40px 80px; max-width: 1400px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 24px; letter-spacing: -0.015em; margin-bottom: 18px; }
+  h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 18px; letter-spacing: -0.01em; margin-bottom: 12px; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+
+  /* Stat grid */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 20px;
+  }
+  .stat-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
+  .stat-value { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 500; letter-spacing: -0.02em; }
+  .stat-sub { font-size: 13px; color: var(--ink-soft); margin-top: 6px; }
+  .stat.house-a { border-left: 3px solid var(--house-a); }
+  .stat.house-b { border-left: 3px solid var(--house-b); }
+  .stat.accent { border-left: 3px solid var(--accent); }
+  .stat-value.positive { color: var(--good); }
+  .stat-value.negative { color: var(--bad); }
+
+  /* Forms */
+  form { display: grid; gap: 14px; }
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+  label { display: block; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 5px; font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  input, select, textarea {
+    width: 100%;
+    padding: 9px 12px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  input[type="number"] { font-family: 'JetBrains Mono', monospace; }
+
+  button.btn {
+    padding: 9px 18px;
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button.btn:hover { background: var(--accent); }
+  button.btn.secondary { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+  button.btn.secondary:hover { background: var(--surface-2); }
+  button.btn.danger { background: var(--bad); }
+  button.btn.small { padding: 5px 10px; font-size: 12px; }
+
+  /* Tables */
+  .table-wrapper { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead { background: var(--surface-2); }
+  th { text-align: left; padding: 10px 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); border-bottom: 1px solid var(--line); font-weight: 500; }
+  th.num, td.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  tr:hover td { background: var(--bg); }
+  td .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+  .pill.water { background: #cfe5ee; color: #1d4e5a; }
+  .pill.heating { background: #f4d6b8; color: #7a4012; }
+  .pill.a { background: var(--house-a-soft); color: var(--house-a); }
+  .pill.b { background: var(--house-b-soft); color: var(--house-b); }
+
+  /* Chart */
+  .chart-container { position: relative; height: 320px; }
+  .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+
+  /* Inline editing */
+  .editable {
+    cursor: text;
+    padding: 4px 6px;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    transition: border-color 0.1s;
+    min-width: 60px;
+    display: inline-block;
+  }
+  .editable:hover { border-color: var(--line); background: var(--bg); }
+  .editable:focus { outline: none; border-color: var(--accent); background: var(--bg); }
+
+  /* Empty state */
+  .empty { text-align: center; padding: 60px 20px; color: var(--ink-mute); }
+  .empty p { font-size: 14px; margin-top: 8px; }
+
+  /* Modal-ish form section */
+  .form-card { background: var(--surface-2); border-left: 3px solid var(--accent); padding: 20px; border-radius: 0 6px 6px 0; margin-bottom: 24px; }
+
+  /* Action row */
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .actions .spacer { flex: 1; }
+  .hint { font-size: 12px; color: var(--ink-mute); font-style: italic; }
+  .badge { display: inline-block; background: var(--accent-soft); color: var(--accent); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em; }
+
+  details { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 20px; margin-bottom: 12px; }
+  details summary { cursor: pointer; font-weight: 500; user-select: none; }
+  details[open] summary { margin-bottom: 12px; }
+
+  .footer-note { font-size: 12px; color: var(--ink-mute); margin-top: 8px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Päivölänrinne 5 — Utility Tracker</h1>
+  <div class="subtitle">House A &amp; House B · water, heating &amp; settlement</div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+  <button class="tab-btn" data-tab="readings">Meter Readings</button>
+  <button class="tab-btn" data-tab="bills">Bills</button>
+  <button class="tab-btn" data-tab="trends">Trends</button>
+  <button class="tab-btn" data-tab="ledger">Ledger</button>
+  <button class="tab-btn" data-tab="settings">Settings</button>
+</nav>
+
+<main>
+
+  <!-- DASHBOARD -->
+  <section class="panel active" id="panel-dashboard">
+    <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px;">
+      <h2 style="margin-bottom: 0;">Last 4 months</h2>
+      <span class="hint">Full history available in Ledger tab</span>
+    </div>
+    <div class="stat-grid">
+      <div class="stat accent">
+        <div class="stat-label">Net balance (4mo)</div>
+        <div class="stat-value" id="net-balance">€0.00</div>
+        <div class="stat-sub" id="net-balance-desc">No settlement needed</div>
+      </div>
+      <div class="stat house-a">
+        <div class="stat-label">House A · paid (4mo)</div>
+        <div class="stat-value" id="a-paid">€0.00</div>
+        <div class="stat-sub" id="a-owes">owes €0.00</div>
+      </div>
+      <div class="stat house-b">
+        <div class="stat-label">House B · paid (4mo)</div>
+        <div class="stat-value" id="b-paid">€0.00</div>
+        <div class="stat-sub" id="b-owes">owes €0.00</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Total billed (4mo)</div>
+        <div class="stat-value" id="total-billed">€0.00</div>
+        <div class="stat-sub" id="total-billed-sub">0 bills</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Consumption — last 12 months</h2>
+        <span class="hint">m³ of water per house, per period</span>
+      </div>
+      <div class="chart-container"><canvas id="chart-recent-consumption"></canvas></div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="card">
+        <div class="card-header"><h3>Cost split — recent bills</h3></div>
+        <div class="chart-container"><canvas id="chart-recent-cost"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Cumulative cost per house</h3></div>
+        <div class="chart-container"><canvas id="chart-cumulative"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- READINGS -->
+  <section class="panel" id="panel-readings">
+    <div class="form-card">
+      <h3 id="reading-form-title">Add meter reading</h3>
+      <p class="hint" style="margin-bottom: 14px;">Take readings monthly when the heating bill arrives. Submit the main water meter to Kerava Vesihuolto via kerava.fi every 4 months.</p>
+      <form id="reading-form">
+        <input type="hidden" id="r-original-date" value="">
+        <div class="form-row">
+          <div><label>Date</label><input type="date" id="r-date" required></div>
+          <div><label>A cold (m³)</label><input type="number" step="0.001" id="r-a-cold" required></div>
+          <div><label>B cold (m³)</label><input type="number" step="0.001" id="r-b-cold" required></div>
+          <div><label>A hot (m³)</label><input type="number" step="0.001" id="r-a-hot" required></div>
+          <div><label>Main water (m³)</label><input type="number" step="0.001" id="r-main-water" required></div>
+        </div>
+        <div class="form-row">
+          <div><label>A kamstrup (MWh)</label><input type="number" step="0.001" id="r-a-kamstrup"></div>
+          <div><label>B sharky (MWh)</label><input type="number" step="0.001" id="r-b-sharky"></div>
+          <div><label>Main kaukolämpö (MWh)</label><input type="number" step="0.001" id="r-main-kaukolampo"></div>
+          <div></div>
+          <div></div>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn" id="reading-save-btn">Save reading</button>
+          <button type="button" class="btn secondary" id="reading-cancel-btn" style="display:none;" onclick="cancelEditReading()">Cancel edit</button>
+          <span class="hint">Heating-meter fields are optional if you don't have a heating bill this month.</span>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>All readings</h2>
+        <span class="hint" id="readings-count">0 readings</span>
+      </div>
+      <div class="table-wrapper">
+        <table id="readings-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th class="num">A cold (m³)</th>
+              <th class="num">B cold (m³)</th>
+              <th class="num">A hot (m³)</th>
+              <th class="num">Main water (m³)</th>
+              <th class="num">A kamstrup (MWh)</th>
+              <th class="num">B sharky (MWh)</th>
+              <th class="num">Main kaukolämpö (MWh)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- BILLS -->
+  <section class="panel" id="panel-bills">
+    <div class="form-card">
+      <h3 id="bill-form-title">Add bill</h3>
+      <form id="bill-form">
+        <input type="hidden" id="b-editing-id" value="">
+        <div class="form-row">
+          <div>
+            <label>Type</label>
+            <select id="b-type" required>
+              <option value="water">Water (Kerava Vesihuolto)</option>
+              <option value="heating">Heating (Keravan Energia)</option>
+            </select>
+          </div>
+          <div><label>Bill date</label><input type="date" id="b-date" required></div>
+          <div><label>Amount (€)</label><input type="number" step="0.01" id="b-amount" required></div>
+          <div>
+            <label>Paid by</label>
+            <select id="b-paid-by" required>
+              <option value="A">House A</option>
+              <option value="B">House B</option>
+              <option value="unpaid">Unpaid</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" id="period-row">
+          <div><label>Period start</label><input type="date" id="b-period-start"></div>
+          <div><label>Period end</label><input type="date" id="b-period-end"></div>
+          <div id="mwh-field-wrap" style="display:none;"><label>Energy (MWh) — optional</label><input type="number" step="0.001" id="b-mwh"></div>
+          <div></div>
+        </div>
+        <div class="form-row">
+          <div style="grid-column: 1 / -1;"><label>Notes</label><input type="text" id="b-notes" placeholder="e.g. Invoice #77594835"></div>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn" id="bill-save-btn">Save bill</button>
+          <button type="button" class="btn secondary" id="bill-cancel-btn" style="display:none;" onclick="cancelEditBill()">Cancel edit</button>
+          <span class="hint" id="bill-form-hint">Water bills are split by total water consumption (cold + hot) in the period.</span>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>All bills</h2>
+        <span class="hint" id="bills-count">0 bills</span>
+      </div>
+      <div class="table-wrapper">
+        <table id="bills-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th class="num">Amount</th>
+              <th>Period</th>
+              <th>Paid by</th>
+              <th class="num">A share</th>
+              <th class="num">B share</th>
+              <th>Notes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRENDS -->
+  <section class="panel" id="panel-trends">
+    <div class="card">
+      <div class="card-header"><h2>Water consumption per house (m³)</h2><span class="hint">Per reading period</span></div>
+      <div class="chart-container"><canvas id="chart-water-consumption"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h2>Hot water consumption (m³)</h2><span class="hint">A hot from sub-meter, B hot derived</span></div>
+      <div class="chart-container"><canvas id="chart-hot-water"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h2>Water bill cost split (€)</h2></div>
+      <div class="chart-container"><canvas id="chart-water-cost"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h2>Heating bills over time (€)</h2></div>
+      <div class="chart-container"><canvas id="chart-heating-cost"></canvas></div>
+    </div>
+  </section>
+
+  <!-- LEDGER -->
+  <section class="panel" id="panel-ledger">
+    <div class="form-card">
+      <h3>Add settlement</h3>
+      <p class="hint" style="margin-bottom: 14px;">When you settle up (typically every 4 months when the water bill arrives), record the date here. The running balance resets to zero from that point forward.</p>
+      <form id="settlement-form">
+        <div class="form-row">
+          <div><label>Settlement date</label><input type="date" id="s-date" required></div>
+          <div style="grid-column: span 2;"><label>Notes (optional)</label><input type="text" id="s-notes" placeholder="e.g. Q2 2026 settlement"></div>
+          <div style="display:flex;align-items:flex-end;"><button type="submit" class="btn">Add settlement</button></div>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Settlement ledger</h2>
+        <span class="hint">Chronological — running balance resets at each settlement</span>
+      </div>
+      <div class="table-wrapper">
+        <table id="ledger-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Bill</th>
+              <th class="num">Amount</th>
+              <th>Paid by</th>
+              <th class="num">A share</th>
+              <th class="num">B share</th>
+              <th class="num">A balance Δ</th>
+              <th class="num">B balance Δ</th>
+              <th class="num">Running net</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="footer-note">Positive net balance = B owes A; negative = A owes B. Each row updates the running net; settlement rows reset it to zero.</p>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="panel" id="panel-settings">
+    <div class="card">
+      <h2>Data management</h2>
+      <p class="hint" style="margin-bottom: 16px;">All data is stored in your browser's localStorage. Export regularly to back up.</p>
+      <div class="actions">
+        <button class="btn" id="btn-export">Export JSON backup</button>
+        <button class="btn secondary" id="btn-import">Import JSON</button>
+        <input type="file" id="import-file" accept=".json" style="display:none;">
+        <div class="spacer"></div>
+        <button class="btn danger" id="btn-reset">Reset all data</button>
+      </div>
+    </div>
+
+    <details>
+      <summary>About the calculations</summary>
+      <div style="font-size: 14px; line-height: 1.7; margin-top: 10px;">
+        <p><strong>Water bill split:</strong> For each period (between two readings), A's total water = A cold + A hot. B's total water = B cold + B hot, where B hot = main water − (A cold + B cold + A hot). The bill is split proportionally.</p>
+        <p style="margin-top: 8px;"><strong>Heating bill split:</strong> For each heating period, hot-water-heating MWh = main kaukolämpö − (A kamstrup + B sharky). This is split between A and B by their hot water consumption ratio. Each house's total MWh = its meter (space heating) + its share of hot-water-heating MWh. Bill is split by MWh ratio.</p>
+        <p style="margin-top: 8px;"><strong>Period matching:</strong> Bills are matched to the reading period that contains the bill date (or the period whose end-date matches the bill's period_end for water bills).</p>
+      </div>
+    </details>
+  </section>
+
+</main>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const STORAGE_KEY = 'paivolanrinne_utility_v1';
+
+let state = {
+  readings: [],
+  bills: [],
+  settlements: [],  // [{date: 'YYYY-MM-DD', notes: '...'}] — running balance resets after each
+};
+
+function load() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    try {
+      state = JSON.parse(raw);
+      // Backfill settlements if loading older data
+      if (!state.settlements) state.settlements = [];
+    }
+    catch (e) { console.error('Bad localStorage data', e); }
+  } else {
+    // First time: seed with historical data
+    state.readings = SEED_READINGS;
+    state.bills = SEED_BILLS;
+    state.settlements = SEED_SETTLEMENTS;
+    save();
+  }
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ============================================================
+// SEED DATA
+// ============================================================
+const SEED_READINGS = [
+  {
+    "date": "2024-01-31",
+    "a_cold": 65.955,
+    "b_cold": 80.552,
+    "a_hot": 34.53,
+    "main_water": 1724,
+    "a_kamstrup": null,
+    "b_sharky": null,
+    "main_kaukolampo": null
+  },
+  {
+    "date": "2024-05-31",
+    "a_cold": 79.19,
+    "b_cold": 131.711,
+    "a_hot": 54.752,
+    "main_water": 1854,
+    "a_kamstrup": 18.62,
+    "b_sharky": 380.16,
+    "main_kaukolampo": 330.81
+  },
+  {
+    "date": "2024-08-31",
+    "a_cold": 108.673,
+    "b_cold": 165.089,
+    "a_hot": 66.192,
+    "main_water": 1934,
+    "a_kamstrup": 19.06,
+    "b_sharky": 381.678,
+    "main_kaukolampo": 335.144
+  },
+  {
+    "date": "2024-12-31",
+    "a_cold": 122.382,
+    "b_cold": 207.555,
+    "a_hot": 78.477,
+    "main_water": 2024,
+    "a_kamstrup": 23.908,
+    "b_sharky": 388.512,
+    "main_kaukolampo": 349.853
+  },
+  {
+    "date": "2025-04-30",
+    "a_cold": 142.68,
+    "b_cold": 245.1,
+    "a_hot": 99.262,
+    "main_water": 2146,
+    "a_kamstrup": 30.308,
+    "b_sharky": 397.467,
+    "main_kaukolampo": 368.95
+  },
+  {
+    "date": "2025-05-31",
+    "a_cold": 142.869,
+    "b_cold": 256.3,
+    "a_hot": 99.42,
+    "main_water": 2144,
+    "a_kamstrup": 31.96,
+    "b_sharky": 400.714,
+    "main_kaukolampo": 376.958
+  },
+  {
+    "date": "2025-08-31",
+    "a_cold": 165.909,
+    "b_cold": 293.095,
+    "a_hot": 114.225,
+    "main_water": 2235,
+    "a_kamstrup": 31.96,
+    "b_sharky": 400.714,
+    "main_kaukolampo": 376.958
+  },
+  {
+    "date": "2025-10-31",
+    "a_cold": 178.683,
+    "b_cold": 315.363,
+    "a_hot": 122.095,
+    "main_water": 2287,
+    "a_kamstrup": 37.222,
+    "b_sharky": 407.358,
+    "main_kaukolampo": 391.999
+  },
+  {
+    "date": "2025-12-31",
+    "a_cold": 191.286,
+    "b_cold": 336.056,
+    "a_hot": 130.574,
+    "main_water": 2339,
+    "a_kamstrup": null,
+    "b_sharky": null,
+    "main_kaukolampo": null
+  },
+  {
+    "date": "2026-04-30",
+    "a_cold": 214.057,
+    "b_cold": 374.933,
+    "a_hot": 147.785,
+    "main_water": 2441,
+    "a_kamstrup": null,
+    "b_sharky": null,
+    "main_kaukolampo": null
+  }
+];
+const SEED_BILLS = [
+  {
+    "type": "water",
+    "date": "2024-05-30",
+    "period_start": "2024-02-01",
+    "period_end": "2024-05-30",
+    "amount": 279.97,
+    "paid_by": "B",
+    "notes": "Talu1 / Taul2"
+  },
+  {
+    "type": "water",
+    "date": "2024-08-31",
+    "period_start": "2024-06-01",
+    "period_end": "2024-08-31",
+    "amount": 315.97,
+    "paid_by": "B",
+    "notes": "Taul3 (derived: 595.94 - 279.97)"
+  },
+  {
+    "type": "water",
+    "date": "2024-12-31",
+    "period_start": "2024-09-01",
+    "period_end": "2024-12-31",
+    "amount": 377.81,
+    "paid_by": "B",
+    "notes": "Talu4"
+  },
+  {
+    "type": "water",
+    "date": "2025-04-30",
+    "period_start": "2025-01-01",
+    "period_end": "2025-04-30",
+    "amount": 381.76,
+    "paid_by": "B",
+    "notes": "Talu5"
+  },
+  {
+    "type": "water",
+    "date": "2025-08-31",
+    "period_start": "2025-05-01",
+    "period_end": "2025-08-31",
+    "amount": 394.52,
+    "paid_by": "B",
+    "notes": "Talu6"
+  },
+  {
+    "type": "water",
+    "date": "2025-12-31",
+    "period_start": "2025-09-01",
+    "period_end": "2025-12-31",
+    "amount": 394.52,
+    "paid_by": "B",
+    "notes": "Talu7"
+  },
+  {
+    "type": "water",
+    "date": "2026-05-07",
+    "period_start": "2023-09-30",
+    "period_end": "2026-04-30",
+    "amount": 1119.64,
+    "paid_by": "unpaid",
+    "notes": "Reconciliation bill #77594835"
+  },
+  {
+    "type": "heating",
+    "date": "2024-03-31",
+    "amount": 495.2,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "March 2024"
+  },
+  {
+    "type": "heating",
+    "date": "2024-04-30",
+    "amount": 439.73,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "April 2024"
+  },
+  {
+    "type": "heating",
+    "date": "2024-05-31",
+    "amount": 270.4,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "May 2024"
+  },
+  {
+    "type": "heating",
+    "date": "2024-06-30",
+    "amount": 213.92,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "June 2024"
+  },
+  {
+    "type": "heating",
+    "date": "2024-07-31",
+    "amount": 186.6,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "July 2024"
+  },
+  {
+    "type": "heating",
+    "date": "2024-08-31",
+    "amount": 197.64,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "August 2024"
+  },
+  {
+    "type": "heating",
+    "date": "2024-09-30",
+    "amount": 248.53,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "September 2024"
+  },
+  {
+    "type": "heating",
+    "date": "2024-10-31",
+    "amount": 402.17,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "October 2024"
+  },
+  {
+    "type": "heating",
+    "date": "2024-11-30",
+    "amount": 500.19,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "November 2024"
+  },
+  {
+    "type": "heating",
+    "date": "2024-12-31",
+    "amount": 581.0,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "December 2024"
+  },
+  {
+    "type": "heating",
+    "date": "2025-01-31",
+    "amount": 611.8,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "January 2025"
+  },
+  {
+    "type": "heating",
+    "date": "2025-02-28",
+    "amount": 600.29,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "February 2025"
+  },
+  {
+    "type": "heating",
+    "date": "2025-03-31",
+    "amount": 538.87,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "March 2025"
+  },
+  {
+    "type": "heating",
+    "date": "2025-04-30",
+    "amount": 420.87,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "April 2025"
+  },
+  {
+    "type": "heating",
+    "date": "2025-05-31",
+    "amount": 344.4,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "May 2025"
+  },
+  {
+    "type": "heating",
+    "date": "2025-06-30",
+    "amount": 283.18,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "June 2025"
+  },
+  {
+    "type": "heating",
+    "date": "2025-07-31",
+    "amount": 203.56,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "July 2025"
+  },
+  {
+    "type": "heating",
+    "date": "2025-08-31",
+    "amount": 255.13,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "August 2025"
+  },
+  {
+    "type": "heating",
+    "date": "2025-09-30",
+    "amount": 292.04,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "September 2025"
+  },
+  {
+    "type": "heating",
+    "date": "2025-10-31",
+    "amount": 406.2,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "October 2025"
+  },
+  {
+    "type": "heating",
+    "date": "2025-11-30",
+    "amount": 491.81,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "November 2025"
+  },
+  {
+    "type": "heating",
+    "date": "2025-12-31",
+    "amount": 567.02,
+    "mwh": null,
+    "paid_by": "A",
+    "notes": "December 2025"
+  }
+];
+const SEED_SETTLEMENTS = [
+  // Historical settlements based on Talu sheets - each closed out the prior period
+  { date: '2024-05-31', notes: 'Talu1 settlement' },
+  { date: '2024-08-31', notes: 'Taul3 settlement' },
+  { date: '2024-12-31', notes: 'Talu4 settlement' },
+  { date: '2025-04-30', notes: 'Talu5 settlement' },
+  { date: '2025-08-31', notes: 'Talu6 settlement' },
+  { date: '2025-12-31', notes: 'Talu7 settlement' },
+];
+
+// ============================================================
+// CALCULATION HELPERS
+// ============================================================
+function sortedReadings() {
+  // Ascending (oldest first) - used for calculations
+  return [...state.readings].sort((a,b) => a.date.localeCompare(b.date));
+}
+function sortedBills() {
+  // Ascending (oldest first) - used for calculations and running balance
+  return [...state.bills].sort((a,b) => a.date.localeCompare(b.date));
+}
+
+// Get consumption between two readings (returns null if either reading is missing the field)
+function deltaWater(r1, r2) {
+  if (r1.a_cold == null || r2.a_cold == null) return null;
+  const dac = r2.a_cold - r1.a_cold;
+  const dbc = r2.b_cold - r1.b_cold;
+  const dah = r2.a_hot - r1.a_hot;
+  const dmain = r2.main_water - r1.main_water;
+  const dbh = dmain - dac - dbc - dah;
+  return {
+    a_cold: dac, b_cold: dbc, a_hot: dah, b_hot: dbh,
+    a_total: dac + dah, b_total: dbc + dbh, main: dmain,
+  };
+}
+
+function deltaHeating(r1, r2) {
+  if (r1.a_kamstrup == null || r2.a_kamstrup == null
+      || r1.b_sharky == null || r2.b_sharky == null
+      || r1.main_kaukolampo == null || r2.main_kaukolampo == null) return null;
+  const a_space = r2.a_kamstrup - r1.a_kamstrup;
+  const b_space = r2.b_sharky - r1.b_sharky;
+  const main = r2.main_kaukolampo - r1.main_kaukolampo;
+  const hot_water_mwh = main - a_space - b_space;
+  return { a_space, b_space, main, hot_water_mwh };
+}
+
+// For a water bill, find the matching reading period (the period spanning the bill's period_end OR fallback to closest)
+function periodForWaterBill(bill) {
+  const readings = sortedReadings();
+  if (readings.length < 2) return null;
+  // Find readings r1 (start) and r2 (end) where r2.date >= bill.period_end and r1.date <= bill.period_start
+  // If period_start/end not set, fall back to bill.date
+  const periodEnd = bill.period_end || bill.date;
+  const periodStart = bill.period_start || bill.date;
+  // Find r2 = first reading on or after periodEnd
+  let r2 = readings.find(r => r.date >= periodEnd);
+  // Find r1 = last reading on or before periodStart
+  let r1 = null;
+  for (const r of readings) {
+    if (r.date <= periodStart) r1 = r;
+  }
+  if (!r1 || !r2 || r1.date >= r2.date) {
+    // Fallback: use the reading closest to/before bill.date and next reading
+    let idx = -1;
+    for (let i = 0; i < readings.length; i++) {
+      if (readings[i].date <= bill.date) idx = i;
+    }
+    if (idx < 0 || idx >= readings.length - 1) return null;
+    r1 = readings[idx];
+    r2 = readings[idx+1];
+  }
+  return { r1, r2 };
+}
+
+function periodForHeatingBill(bill) {
+  // Heating bill = month-long. If explicit period_start/end provided, use them.
+  // Otherwise infer from bill.date (find readings before and after).
+  const readings = sortedReadings();
+  if (readings.length < 2) return null;
+  if (bill.period_start && bill.period_end) {
+    // Find r1 = last reading on or before period_start, r2 = first reading on or after period_end
+    let r1 = null;
+    for (const r of readings) {
+      if (r.date <= bill.period_start) r1 = r;
+    }
+    const r2 = readings.find(r => r.date >= bill.period_end);
+    if (r1 && r2 && r1.date < r2.date) return { r1, r2 };
+  }
+  // Fallback: bracket the bill date
+  for (let i = 0; i < readings.length - 1; i++) {
+    if (readings[i].date < bill.date && readings[i+1].date >= bill.date) {
+      return { r1: readings[i], r2: readings[i+1] };
+    }
+  }
+  return null;
+}
+
+function calcBillSplit(bill) {
+  if (bill.type === 'water') {
+    const p = periodForWaterBill(bill);
+    if (!p) return { a: null, b: null, reason: 'No matching reading period' };
+    const d = deltaWater(p.r1, p.r2);
+    if (!d) return { a: null, b: null, reason: 'Incomplete readings' };
+    const tot = d.a_total + d.b_total;
+    if (tot <= 0) return { a: null, b: null, reason: 'Zero consumption in period' };
+    const aShare = d.a_total / tot;
+    return {
+      a: bill.amount * aShare,
+      b: bill.amount * (1 - aShare),
+      aRatio: aShare,
+      bRatio: 1 - aShare,
+      detail: d,
+      r1: p.r1, r2: p.r2,
+    };
+  } else if (bill.type === 'heating') {
+    const p = periodForHeatingBill(bill);
+    if (!p) return { a: null, b: null, reason: 'No matching reading period' };
+    const dw = deltaWater(p.r1, p.r2);
+    const dh = deltaHeating(p.r1, p.r2);
+    if (!dh) return { a: null, b: null, reason: 'Incomplete heating readings' };
+    if (!dw) {
+      // Fallback: split heating MWh by sub-meters only, ignore hot water split
+      const tot = dh.a_space + dh.b_space + dh.hot_water_mwh;
+      if (tot <= 0) return { a: null, b: null, reason: 'Zero heating consumption' };
+      // 50/50 fallback for hot water portion
+      const a_total = dh.a_space + dh.hot_water_mwh / 2;
+      const b_total = dh.b_space + dh.hot_water_mwh / 2;
+      const aR = a_total / (a_total + b_total);
+      return {
+        a: bill.amount * aR,
+        b: bill.amount * (1 - aR),
+        aRatio: aR,
+        bRatio: 1 - aR,
+        detail: dh,
+        r1: p.r1, r2: p.r2,
+        warning: 'Hot water split estimated 50/50 (incomplete water readings)',
+      };
+    }
+    // Split hot_water_mwh by hot water consumption ratio
+    const hotTot = dw.a_hot + dw.b_hot;
+    let aHotShare = 0.5, bHotShare = 0.5;
+    if (hotTot > 0) {
+      aHotShare = dw.a_hot / hotTot;
+      bHotShare = dw.b_hot / hotTot;
+    }
+    const a_total_mwh = dh.a_space + dh.hot_water_mwh * aHotShare;
+    const b_total_mwh = dh.b_space + dh.hot_water_mwh * bHotShare;
+    const tot = a_total_mwh + b_total_mwh;
+    if (tot <= 0) return { a: null, b: null, reason: 'Zero heating consumption' };
+    const aR = a_total_mwh / tot;
+    return {
+      a: bill.amount * aR,
+      b: bill.amount * (1 - aR),
+      aRatio: aR,
+      bRatio: 1 - aR,
+      detail: { ...dh, a_total_mwh, b_total_mwh, dw },
+      r1: p.r1, r2: p.r2,
+    };
+  }
+}
+
+function computeBalances(sinceDate) {
+  // sinceDate (optional YYYY-MM-DD): only include bills on or after this date in totals.
+  // ALSO: if any settlement(s) exist on or after sinceDate, only count bills after the latest such settlement.
+  // (Settlements zero out prior obligations.)
+  let aPaid = 0, bPaid = 0;
+  let aOwes = 0, bOwes = 0;
+  let totalBilled = 0;
+  let entries = [];
+
+  // Find the effective "since" date: max(sinceDate, latest settlement date <= today)
+  // Bills before the latest settlement that's >= sinceDate don't count
+  const settlements = [...(state.settlements || [])].sort((a,b) => a.date.localeCompare(b.date));
+  let effectiveSince = sinceDate || '0000-01-01';
+  for (const s of settlements) {
+    if (s.date >= effectiveSince) {
+      effectiveSince = s.date; // settlement supersedes earlier date
+    }
+  }
+
+  for (const bill of sortedBills()) {
+    const split = calcBillSplit(bill);
+    const outOfWindow = bill.date <= effectiveSince && effectiveSince !== '0000-01-01';
+    if (outOfWindow) {
+      // Still include for ledger entries; just don't count in totals
+      entries.push({ bill, split: split.a == null ? { a: bill.amount/2, b: bill.amount/2, fallback: true, reason: split.reason } : split });
+      continue;
+    }
+    totalBilled += bill.amount;
+    if (split.a == null) {
+      const aSh = bill.amount / 2;
+      const bSh = bill.amount / 2;
+      if (bill.paid_by === 'A') aPaid += bill.amount;
+      else if (bill.paid_by === 'B') bPaid += bill.amount;
+      aOwes += aSh;
+      bOwes += bSh;
+      entries.push({ bill, split: { a: aSh, b: bSh, fallback: true, reason: split.reason } });
+    } else {
+      if (bill.paid_by === 'A') aPaid += bill.amount;
+      else if (bill.paid_by === 'B') bPaid += bill.amount;
+      aOwes += split.a;
+      bOwes += split.b;
+      entries.push({ bill, split });
+    }
+  }
+  const aBalance = aPaid - aOwes;
+  const bBalance = bPaid - bOwes;
+  return { aPaid, bPaid, aOwes, bOwes, aBalance, bBalance, totalBilled, entries, effectiveSince };
+}
+
+// Returns YYYY-MM-DD for date N months before today
+function dateNMonthsAgo(n) {
+  const d = new Date();
+  d.setMonth(d.getMonth() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+// ============================================================
+// FORMATTERS
+// ============================================================
+const fmt = {
+  eur(n) { if (n == null || isNaN(n)) return '—'; return '€' + n.toFixed(2); },
+  m3(n) { if (n == null || isNaN(n)) return '—'; return n.toFixed(2) + ' m³'; },
+  mwh(n) { if (n == null || isNaN(n)) return '—'; return n.toFixed(2) + ' MWh'; },
+  date(d) { if (!d) return '—'; const parts = d.split('-'); return parts[2] + '.' + parts[1] + '.' + parts[0]; },
+  pct(n) { if (n == null || isNaN(n)) return '—'; return (n*100).toFixed(1) + '%'; },
+  num(n, dec=3) { if (n == null || isNaN(n)) return ''; return n.toFixed(dec); },
+};
+
+// ============================================================
+// RENDERERS
+// ============================================================
+function renderDashboard() {
+  const since = dateNMonthsAgo(4);
+  const b = computeBalances(since);
+  // Net balance: positive = B owes A
+  const net = b.aBalance;
+  const netEl = document.getElementById('net-balance');
+  const descEl = document.getElementById('net-balance-desc');
+  if (Math.abs(net) < 0.01) {
+    netEl.textContent = '€0.00';
+    netEl.className = 'stat-value';
+    descEl.textContent = 'All settled — no one owes anyone';
+  } else if (net > 0) {
+    netEl.textContent = fmt.eur(net);
+    netEl.className = 'stat-value positive';
+    descEl.textContent = `B should pay A ${fmt.eur(net)}`;
+  } else {
+    netEl.textContent = fmt.eur(-net);
+    netEl.className = 'stat-value negative';
+    descEl.textContent = `A should pay B ${fmt.eur(-net)}`;
+  }
+  document.getElementById('a-paid').textContent = fmt.eur(b.aPaid);
+  document.getElementById('a-owes').textContent = 'fair share: ' + fmt.eur(b.aOwes);
+  document.getElementById('b-paid').textContent = fmt.eur(b.bPaid);
+  document.getElementById('b-owes').textContent = 'fair share: ' + fmt.eur(b.bOwes);
+  document.getElementById('total-billed').textContent = fmt.eur(b.totalBilled);
+  // Show context: window starts at the later of 4-months-ago or last settlement
+  const billsInWindow = b.entries.filter(e => e.bill.date > b.effectiveSince).length;
+  let windowDesc = '';
+  if (b.effectiveSince && b.effectiveSince !== '0000-01-01' && b.effectiveSince > since) {
+    windowDesc = `${billsInWindow} bills since settlement ${fmt.date(b.effectiveSince)}`;
+  } else {
+    windowDesc = `${billsInWindow} bills in last 4 months`;
+  }
+  document.getElementById('total-billed-sub').textContent = windowDesc;
+
+  renderRecentConsumptionChart();
+  renderRecentCostChart(b);
+  renderCumulativeChart(b);
+}
+
+function renderReadings() {
+  const tbody = document.querySelector('#readings-table tbody');
+  tbody.innerHTML = '';
+  const readings = [...sortedReadings()].reverse(); // newest first for display
+  document.getElementById('readings-count').textContent = `${readings.length} readings`;
+  if (readings.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No readings yet. Add your first reading above.</td></tr>';
+    return;
+  }
+  for (const r of readings) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${fmt.date(r.date)}</td>
+      <td class="num">${fmt.num(r.a_cold)}</td>
+      <td class="num">${fmt.num(r.b_cold)}</td>
+      <td class="num">${fmt.num(r.a_hot)}</td>
+      <td class="num">${fmt.num(r.main_water, 0)}</td>
+      <td class="num">${fmt.num(r.a_kamstrup)}</td>
+      <td class="num">${fmt.num(r.b_sharky)}</td>
+      <td class="num">${fmt.num(r.main_kaukolampo)}</td>
+      <td style="white-space:nowrap;"><button class="btn small secondary" onclick="editReading('${r.date}')">Edit</button> <button class="btn small secondary" onclick="deleteReading('${r.date}')">×</button></td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function renderBills() {
+  const tbody = document.querySelector('#bills-table tbody');
+  tbody.innerHTML = '';
+  const bills = [...sortedBills()].reverse(); // newest first for display
+  document.getElementById('bills-count').textContent = `${bills.length} bills`;
+  if (bills.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No bills yet.</td></tr>';
+    return;
+  }
+  for (const bill of bills) {
+    const split = calcBillSplit(bill);
+    const tr = document.createElement('tr');
+    const period = (bill.period_start && bill.period_end)
+      ? `${fmt.date(bill.period_start)} — ${fmt.date(bill.period_end)}`
+      : (bill.notes && bill.notes.match(/[A-Za-z]+ \d{4}/) ? bill.notes.match(/[A-Za-z]+ \d{4}/)[0] : '—');
+    tr.innerHTML = `
+      <td>${fmt.date(bill.date)}</td>
+      <td><span class="pill ${bill.type}">${bill.type}</span></td>
+      <td class="num">${fmt.eur(bill.amount)}</td>
+      <td>${period}</td>
+      <td>${bill.paid_by === 'unpaid' ? '<span class="pill" style="background:#eee;color:#999">unpaid</span>' : '<span class="pill ' + bill.paid_by.toLowerCase() + '">' + bill.paid_by + '</span>'}</td>
+      <td class="num">${fmt.eur(split.a)}</td>
+      <td class="num">${fmt.eur(split.b)}</td>
+      <td style="font-size:12px;color:var(--ink-mute)">${bill.notes || ''}</td>
+      <td style="white-space:nowrap;"><button class="btn small secondary" onclick="editBill('${bill.id || bill.date + bill.type + bill.amount}')">Edit</button> <button class="btn small secondary" onclick="deleteBill('${bill.id || bill.date + bill.type + bill.amount}')">×</button></td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function renderLedger() {
+  const tbody = document.querySelector('#ledger-table tbody');
+  tbody.innerHTML = '';
+  const b = computeBalances();
+  if (b.entries.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">No bills yet.</td></tr>';
+    return;
+  }
+  // Settlements sorted ascending — each settlement resets running balance to 0
+  const settlements = [...(state.settlements || [])].sort((a,b) => a.date.localeCompare(b.date));
+  let settlementIdx = 0;
+
+  // Compute running balance in chronological order, store rows, then reverse for display
+  // After each settlement date passes, reset running balance to 0
+  let runningA = 0, runningB = 0;
+  const rows = [];
+  for (const e of b.entries) {
+    const bill = e.bill;
+    // Insert any settlements that come on or before this bill's date
+    while (settlementIdx < settlements.length && settlements[settlementIdx].date < bill.date) {
+      const s = settlements[settlementIdx];
+      rows.push({ type: 'settlement', settlement: s, runningANow: runningA });
+      runningA = 0;
+      runningB = 0;
+      settlementIdx++;
+    }
+    const split = e.split;
+    let dA = 0, dB = 0;
+    if (bill.paid_by === 'A') dA += bill.amount;
+    else if (bill.paid_by === 'B') dB += bill.amount;
+    dA -= split.a;
+    dB -= split.b;
+    runningA += dA;
+    runningB += dB;
+    const net = runningA;
+    let netClass = '';
+    let netDesc = '';
+    if (Math.abs(net) < 0.01) { netDesc = '€0.00 (even)'; }
+    else if (net > 0) { netClass = 'positive'; netDesc = `B owes A ${fmt.eur(net)}`; }
+    else { netClass = 'negative'; netDesc = `A owes B ${fmt.eur(-net)}`; }
+    rows.push({ type: 'bill', bill, split, dA, dB, netClass, netDesc });
+  }
+  // Any remaining settlements after the last bill
+  while (settlementIdx < settlements.length) {
+    const s = settlements[settlementIdx];
+    rows.push({ type: 'settlement', settlement: s, runningANow: runningA });
+    runningA = 0;
+    settlementIdx++;
+  }
+
+  // Display newest first
+  for (const row of rows.reverse()) {
+    if (row.type === 'settlement') {
+      const s = row.settlement;
+      const tr = document.createElement('tr');
+      tr.style.background = 'var(--surface-2)';
+      tr.innerHTML = `
+        <td>${fmt.date(s.date)}</td>
+        <td colspan="7" style="font-style:italic;color:var(--ink-soft);">
+          ⎯ Settlement ${s.notes ? '· ' + s.notes : ''} ⎯ balance reset to €0.00
+        </td>
+        <td style="white-space:nowrap;text-align:right;">
+          <button class="btn small secondary" onclick="deleteSettlement('${s.date}')">×</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      continue;
+    }
+    const { bill, split, dA, dB, netClass, netDesc } = row;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${fmt.date(bill.date)}</td>
+      <td><span class="pill ${bill.type}">${bill.type}</span> ${bill.notes || ''}</td>
+      <td class="num">${fmt.eur(bill.amount)}</td>
+      <td>${bill.paid_by === 'unpaid' ? '<em>unpaid</em>' : '<span class="pill ' + bill.paid_by.toLowerCase() + '">' + bill.paid_by + '</span>'}</td>
+      <td class="num">${fmt.eur(split.a)}</td>
+      <td class="num">${fmt.eur(split.b)}</td>
+      <td class="num" style="color:${dA>=0?'var(--good)':'var(--bad)'}">${dA>=0?'+':''}${dA.toFixed(2)}</td>
+      <td class="num" style="color:${dB>=0?'var(--good)':'var(--bad)'}">${dB>=0?'+':''}${dB.toFixed(2)}</td>
+      <td class="num ${netClass}" style="font-weight:500">${netDesc}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+// ============================================================
+// CHARTS
+// ============================================================
+let charts = {};
+function destroyCharts() {
+  for (const k in charts) { charts[k]?.destroy(); }
+  charts = {};
+}
+
+const chartColors = {
+  a: '#2d6a4f',
+  aSoft: 'rgba(45,106,79,0.15)',
+  b: '#6a4a8c',
+  bSoft: 'rgba(106,74,140,0.15)',
+  accent: '#b4530a',
+  ink: '#4a4640',
+  line: '#e5dfd2',
+};
+
+const chartFont = { family: 'Inter, sans-serif', size: 12 };
+
+Chart.defaults.font = chartFont;
+Chart.defaults.color = chartColors.ink;
+Chart.defaults.borderColor = chartColors.line;
+
+function renderRecentConsumptionChart() {
+  const ctx = document.getElementById('chart-recent-consumption');
+  if (!ctx) return;
+  if (charts.recent) charts.recent.destroy();
+  const readings = sortedReadings();
+  const labels = [], aData = [], bData = [];
+  for (let i = 1; i < readings.length; i++) {
+    const d = deltaWater(readings[i-1], readings[i]);
+    if (!d) continue;
+    labels.push(fmt.date(readings[i].date));
+    aData.push(d.a_total);
+    bData.push(d.b_total);
+  }
+  const last = 8;
+  const sLabels = labels.slice(-last);
+  const sA = aData.slice(-last);
+  const sB = bData.slice(-last);
+  charts.recent = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sLabels,
+      datasets: [
+        { label: 'House A', data: sA, backgroundColor: chartColors.a },
+        { label: 'House B', data: sB, backgroundColor: chartColors.b },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', align: 'end' } },
+      scales: {
+        x: { stacked: false, grid: { display: false } },
+        y: { beginAtZero: true, title: { display: true, text: 'm³' } },
+      },
+    },
+  });
+}
+
+function renderRecentCostChart(b) {
+  const ctx = document.getElementById('chart-recent-cost');
+  if (!ctx) return;
+  if (charts.recentCost) charts.recentCost.destroy();
+  // Last 8 bills
+  const entries = b.entries.slice(-8);
+  const labels = entries.map(e => fmt.date(e.bill.date) + ' (' + e.bill.type + ')');
+  const aData = entries.map(e => e.split.a || 0);
+  const bData = entries.map(e => e.split.b || 0);
+  charts.recentCost = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'House A', data: aData, backgroundColor: chartColors.a },
+        { label: 'House B', data: bData, backgroundColor: chartColors.b },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: { legend: { position: 'top', align: 'end' } },
+      scales: { x: { stacked: true, title: { display: true, text: '€' } }, y: { stacked: true, grid: { display: false } } },
+    },
+  });
+}
+
+function renderCumulativeChart(b) {
+  const ctx = document.getElementById('chart-cumulative');
+  if (!ctx) return;
+  if (charts.cumul) charts.cumul.destroy();
+  let cumA = 0, cumB = 0;
+  const labels = [], aData = [], bData = [];
+  for (const e of b.entries) {
+    cumA += e.split.a || 0;
+    cumB += e.split.b || 0;
+    labels.push(fmt.date(e.bill.date));
+    aData.push(cumA);
+    bData.push(cumB);
+  }
+  charts.cumul = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'House A (cumulative)', data: aData, borderColor: chartColors.a, backgroundColor: chartColors.aSoft, fill: true, tension: 0.2, pointRadius: 2 },
+        { label: 'House B (cumulative)', data: bData, borderColor: chartColors.b, backgroundColor: chartColors.bSoft, fill: true, tension: 0.2, pointRadius: 2 },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', align: 'end' } },
+      scales: { y: { beginAtZero: true, title: { display: true, text: '€' } }, x: { grid: { display: false } } },
+    },
+  });
+}
+
+function renderTrendCharts() {
+  // Water consumption chart
+  const readings = sortedReadings();
+  const consLabels = [], aConsData = [], bConsData = [], aHotData = [], bHotData = [];
+  for (let i = 1; i < readings.length; i++) {
+    const d = deltaWater(readings[i-1], readings[i]);
+    if (!d) continue;
+    consLabels.push(fmt.date(readings[i].date));
+    aConsData.push(d.a_total);
+    bConsData.push(d.b_total);
+    aHotData.push(d.a_hot);
+    bHotData.push(d.b_hot);
+  }
+  if (charts.water) charts.water.destroy();
+  charts.water = new Chart(document.getElementById('chart-water-consumption'), {
+    type: 'bar',
+    data: { labels: consLabels, datasets: [
+      { label: 'House A', data: aConsData, backgroundColor: chartColors.a },
+      { label: 'House B', data: bConsData, backgroundColor: chartColors.b },
+    ]},
+    options: { maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end' } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: 'm³' } } } },
+  });
+  if (charts.hot) charts.hot.destroy();
+  charts.hot = new Chart(document.getElementById('chart-hot-water'), {
+    type: 'line',
+    data: { labels: consLabels, datasets: [
+      { label: 'A hot', data: aHotData, borderColor: chartColors.a, backgroundColor: chartColors.aSoft, fill: false, tension: 0.2 },
+      { label: 'B hot (derived)', data: bHotData, borderColor: chartColors.b, backgroundColor: chartColors.bSoft, fill: false, tension: 0.2 },
+    ]},
+    options: { maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end' } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: 'm³' } } } },
+  });
+
+  // Water bill cost
+  const waterBills = sortedBills().filter(b => b.type === 'water');
+  const wcLabels = [], wcA = [], wcB = [];
+  for (const bill of waterBills) {
+    const split = calcBillSplit(bill);
+    wcLabels.push(fmt.date(bill.date));
+    wcA.push(split.a || 0);
+    wcB.push(split.b || 0);
+  }
+  if (charts.waterCost) charts.waterCost.destroy();
+  charts.waterCost = new Chart(document.getElementById('chart-water-cost'), {
+    type: 'bar',
+    data: { labels: wcLabels, datasets: [
+      { label: 'House A', data: wcA, backgroundColor: chartColors.a },
+      { label: 'House B', data: wcB, backgroundColor: chartColors.b },
+    ]},
+    options: { maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end' } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, title: { display: true, text: '€' } } } },
+  });
+
+  // Heating bill cost
+  const heatBills = sortedBills().filter(b => b.type === 'heating');
+  const hLabels = [], hA = [], hB = [];
+  for (const bill of heatBills) {
+    const split = calcBillSplit(bill);
+    hLabels.push(fmt.date(bill.date));
+    hA.push(split.a || bill.amount / 2);
+    hB.push(split.b || bill.amount / 2);
+  }
+  if (charts.heatCost) charts.heatCost.destroy();
+  charts.heatCost = new Chart(document.getElementById('chart-heating-cost'), {
+    type: 'line',
+    data: { labels: hLabels, datasets: [
+      { label: 'House A', data: hA, borderColor: chartColors.a, backgroundColor: chartColors.aSoft, fill: false, tension: 0.2 },
+      { label: 'House B', data: hB, borderColor: chartColors.b, backgroundColor: chartColors.bSoft, fill: false, tension: 0.2 },
+      { label: 'Total', data: hLabels.map((_, i) => hA[i] + hB[i]), borderColor: chartColors.accent, fill: false, borderDash: [4,4], tension: 0.2, pointRadius: 0 },
+    ]},
+    options: { maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end' } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: '€' } } } },
+  });
+}
+
+// ============================================================
+// FORM HANDLERS
+// ============================================================
+document.getElementById('reading-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const date = document.getElementById('r-date').value;
+  const originalDate = document.getElementById('r-original-date').value;
+  const isEdit = !!originalDate;
+  // If date changed (or it's a new entry) check for conflict
+  if (date !== originalDate && state.readings.find(r => r.date === date)) {
+    if (!confirm(`A reading for ${date} already exists. Overwrite?`)) return;
+    state.readings = state.readings.filter(r => r.date !== date);
+  }
+  // Remove old version if editing
+  if (isEdit) {
+    state.readings = state.readings.filter(r => r.date !== originalDate);
+  }
+  const reading = {
+    date,
+    a_cold: parseFloat(document.getElementById('r-a-cold').value),
+    b_cold: parseFloat(document.getElementById('r-b-cold').value),
+    a_hot: parseFloat(document.getElementById('r-a-hot').value),
+    main_water: parseFloat(document.getElementById('r-main-water').value),
+    a_kamstrup: parseFloat(document.getElementById('r-a-kamstrup').value) || null,
+    b_sharky: parseFloat(document.getElementById('r-b-sharky').value) || null,
+    main_kaukolampo: parseFloat(document.getElementById('r-main-kaukolampo').value) || null,
+  };
+  state.readings.push(reading);
+  save();
+  resetReadingForm();
+  refreshAll();
+});
+
+function resetReadingForm() {
+  document.getElementById('reading-form').reset();
+  document.getElementById('r-original-date').value = '';
+  document.getElementById('reading-form-title').textContent = 'Add meter reading';
+  document.getElementById('reading-save-btn').textContent = 'Save reading';
+  document.getElementById('reading-cancel-btn').style.display = 'none';
+  // Reset date to today
+  document.getElementById('r-date').value = new Date().toISOString().slice(0,10);
+}
+
+window.editReading = function(date) {
+  const r = state.readings.find(r => r.date === date);
+  if (!r) return;
+  document.getElementById('r-original-date').value = date;
+  document.getElementById('r-date').value = r.date;
+  document.getElementById('r-a-cold').value = r.a_cold ?? '';
+  document.getElementById('r-b-cold').value = r.b_cold ?? '';
+  document.getElementById('r-a-hot').value = r.a_hot ?? '';
+  document.getElementById('r-main-water').value = r.main_water ?? '';
+  document.getElementById('r-a-kamstrup').value = r.a_kamstrup ?? '';
+  document.getElementById('r-b-sharky').value = r.b_sharky ?? '';
+  document.getElementById('r-main-kaukolampo').value = r.main_kaukolampo ?? '';
+  document.getElementById('reading-form-title').textContent = `Edit reading — ${fmt.date(date)}`;
+  document.getElementById('reading-save-btn').textContent = 'Update reading';
+  document.getElementById('reading-cancel-btn').style.display = '';
+  document.querySelector('#panel-readings .form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.cancelEditReading = function() {
+  resetReadingForm();
+};
+
+document.getElementById('bill-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const editingId = document.getElementById('b-editing-id').value;
+  const isEdit = !!editingId;
+  // Find existing ID if editing (preserve), or generate new
+  let billId;
+  if (isEdit) {
+    billId = editingId;
+    // Remove existing
+    state.bills = state.bills.filter(b => (b.id || b.date+b.type+b.amount) !== editingId);
+  } else {
+    billId = 'b_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+  }
+  const bill = {
+    id: billId,
+    type: document.getElementById('b-type').value,
+    date: document.getElementById('b-date').value,
+    amount: parseFloat(document.getElementById('b-amount').value),
+    paid_by: document.getElementById('b-paid-by').value,
+    period_start: document.getElementById('b-period-start').value || null,
+    period_end: document.getElementById('b-period-end').value || null,
+    mwh: parseFloat(document.getElementById('b-mwh').value) || null,
+    notes: document.getElementById('b-notes').value || '',
+  };
+  state.bills.push(bill);
+  save();
+  resetBillForm();
+  refreshAll();
+});
+
+function resetBillForm() {
+  document.getElementById('bill-form').reset();
+  document.getElementById('b-editing-id').value = '';
+  document.getElementById('bill-form-title').textContent = 'Add bill';
+  document.getElementById('bill-save-btn').textContent = 'Save bill';
+  document.getElementById('bill-cancel-btn').style.display = 'none';
+  // Reset date to today
+  document.getElementById('b-date').value = new Date().toISOString().slice(0,10);
+  // Trigger type change to show/hide correct fields
+  document.getElementById('b-type').dispatchEvent(new Event('change'));
+}
+
+window.editBill = function(idOrKey) {
+  const bill = state.bills.find(b => (b.id || b.date+b.type+b.amount) === idOrKey);
+  if (!bill) return;
+  document.getElementById('b-editing-id').value = idOrKey;
+  document.getElementById('b-type').value = bill.type;
+  document.getElementById('b-date').value = bill.date;
+  document.getElementById('b-amount').value = bill.amount;
+  document.getElementById('b-paid-by').value = bill.paid_by;
+  document.getElementById('b-period-start').value = bill.period_start || '';
+  document.getElementById('b-period-end').value = bill.period_end || '';
+  document.getElementById('b-mwh').value = bill.mwh ?? '';
+  document.getElementById('b-notes').value = bill.notes || '';
+  // Trigger type change to show/hide correct fields
+  document.getElementById('b-type').dispatchEvent(new Event('change'));
+  document.getElementById('bill-form-title').textContent = `Edit bill — ${fmt.date(bill.date)} (${bill.type})`;
+  document.getElementById('bill-save-btn').textContent = 'Update bill';
+  document.getElementById('bill-cancel-btn').style.display = '';
+  document.querySelector('#panel-bills .form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+window.cancelEditBill = function() {
+  resetBillForm();
+};
+
+document.getElementById('b-type').addEventListener('change', (e) => {
+  const isWater = e.target.value === 'water';
+  document.getElementById('mwh-field-wrap').style.display = isWater ? 'none' : '';
+  document.getElementById('bill-form-hint').textContent = isWater
+    ? 'Water bills are split by total water consumption (cold + hot) in the period.'
+    : 'Heating bills are split by space heating (A/B sub-meters) plus hot water consumption ratio. Period is usually one month.';
+});
+
+window.deleteReading = function(date) {
+  if (!confirm(`Delete reading from ${date}?`)) return;
+  state.readings = state.readings.filter(r => r.date !== date);
+  save();
+  refreshAll();
+};
+
+window.deleteBill = function(idOrKey) {
+  if (!confirm('Delete this bill?')) return;
+  state.bills = state.bills.filter(b => (b.id || b.date+b.type+b.amount) !== idOrKey);
+  save();
+  refreshAll();
+};
+
+// Settlement handlers
+document.getElementById('settlement-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const date = document.getElementById('s-date').value;
+  const notes = document.getElementById('s-notes').value || '';
+  if (state.settlements.find(s => s.date === date)) {
+    alert('A settlement already exists for that date.');
+    return;
+  }
+  state.settlements.push({ date, notes });
+  save();
+  e.target.reset();
+  document.getElementById('s-date').value = new Date().toISOString().slice(0,10);
+  refreshAll();
+  renderLedger();
+});
+
+window.deleteSettlement = function(date) {
+  if (!confirm(`Delete settlement on ${date}? This will reopen all previously-settled bills.`)) return;
+  state.settlements = state.settlements.filter(s => s.date !== date);
+  save();
+  refreshAll();
+  renderLedger();
+};
+
+// Settings
+document.getElementById('btn-export').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `paivolanrinne_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('btn-import').addEventListener('click', () => {
+  document.getElementById('import-file').click();
+});
+document.getElementById('import-file').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data.readings || !data.bills) throw new Error('Invalid format');
+      if (!data.settlements) data.settlements = [];
+      if (!confirm('Replace all current data with imported data?')) return;
+      state = data;
+      save();
+      refreshAll();
+      alert('Imported successfully');
+    } catch (err) { alert('Import failed: ' + err.message); }
+  };
+  r.readAsText(file);
+});
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if (!confirm('Permanently delete ALL data? Export a backup first.')) return;
+  if (!confirm('Really? This cannot be undone.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = { readings: [], bills: [], settlements: [] };
+  refreshAll();
+});
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'dashboard') renderDashboard();
+    if (btn.dataset.tab === 'trends') renderTrendCharts();
+    if (btn.dataset.tab === 'ledger') renderLedger();
+  });
+});
+
+// Set today's date as default for forms
+const today = new Date().toISOString().slice(0,10);
+document.getElementById('r-date').value = today;
+document.getElementById('b-date').value = today;
+document.getElementById('s-date').value = today;
+
+function refreshAll() {
+  renderDashboard();
+  renderReadings();
+  renderBills();
+  // trends/ledger rendered on tab click
+}
+
+// INIT
+load();
+refreshAll();
+</script>
+
+</body>
+</html>
