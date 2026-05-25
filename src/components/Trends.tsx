@@ -90,14 +90,14 @@ export const Trends: React.FC = () => {
         title="Water consumption per house (m³)"
         subtitle="Per reading period"
       >
-        <div className="h-80">
+        <div className="h-64 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={waterData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5dfd2" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} angle={-45} textAnchor="end" height={70} />
-              <YAxis tick={{ fontSize: 12 }} />
+              <XAxis dataKey="date" tick={{ fontSize: 9 }} angle={-45} textAnchor="end" height={70} />
+              <YAxis tick={{ fontSize: 10 }} />
               <Tooltip />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Bar dataKey="houseA" fill="#2d6a4f" name="House A" />
               <Bar dataKey="houseB" fill="#6a4a8c" name="House B" />
             </BarChart>
@@ -109,14 +109,14 @@ export const Trends: React.FC = () => {
         title="Hot water consumption (m³)"
         subtitle="A hot from sub-meter, B hot derived"
       >
-        <div className="h-80">
+        <div className="h-64 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={hotWaterData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5dfd2" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} angle={-45} textAnchor="end" height={70} />
-              <YAxis tick={{ fontSize: 12 }} />
+              <XAxis dataKey="date" tick={{ fontSize: 9 }} angle={-45} textAnchor="end" height={70} />
+              <YAxis tick={{ fontSize: 10 }} />
               <Tooltip />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Line
                 type="monotone"
                 dataKey="aHot"
@@ -139,14 +139,14 @@ export const Trends: React.FC = () => {
       </Card>
 
       <Card title="Water bill cost split (€)">
-        <div className="h-80">
+        <div className="h-64 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={waterCostData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5dfd2" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} angle={-45} textAnchor="end" height={70} />
-              <YAxis tick={{ fontSize: 12 }} />
+              <XAxis dataKey="date" tick={{ fontSize: 9 }} angle={-45} textAnchor="end" height={70} />
+              <YAxis tick={{ fontSize: 10 }} />
               <Tooltip />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Bar dataKey="houseA" fill="#2d6a4f" name="House A" stackId="a" />
               <Bar dataKey="houseB" fill="#6a4a8c" name="House B" stackId="a" />
             </BarChart>
@@ -155,14 +155,14 @@ export const Trends: React.FC = () => {
       </Card>
 
       <Card title="Heating bills over time (€)">
-        <div className="h-80">
+        <div className="h-64 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={heatingCostData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5dfd2" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} angle={-45} textAnchor="end" height={70} />
-              <YAxis tick={{ fontSize: 12 }} />
+              <XAxis dataKey="date" tick={{ fontSize: 9 }} angle={-45} textAnchor="end" height={70} />
+              <YAxis tick={{ fontSize: 10 }} />
               <Tooltip />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Line
                 type="monotone"
                 dataKey="houseA"

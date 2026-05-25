@@ -169,8 +169,8 @@ export const Ledger: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full text-xs sm:text-sm min-w-[900px]">
                 <thead className="bg-surface-2">
                   <tr>
                     <th className="text-left px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-soft border-b border-line">

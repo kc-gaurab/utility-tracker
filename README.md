@@ -12,6 +12,7 @@ A React + TypeScript app for tracking and splitting utility bills between two ho
 - **Multi-User Support**: You and your neighbor can access and edit the same data
 - **Charts & Trends**: Visualize consumption and costs over time
 - **Offline-First**: Works offline with automatic sync when connection is restored
+- **Mobile-Responsive**: Fully optimized for phones and tablets with touch-friendly interface
 
 ## How It Works
 

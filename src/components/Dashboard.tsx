@@ -92,9 +92,9 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div>
-      <div className="flex items-baseline gap-3 mb-4">
-        <h2 className="font-serif text-2xl font-medium">Last 4 months</h2>
-        <span className="text-sm text-ink-mute italic">
+      <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 mb-4">
+        <h2 className="font-serif text-xl sm:text-2xl font-medium">Last 4 months</h2>
+        <span className="text-xs sm:text-sm text-ink-mute italic">
           Full history available in Ledger tab
         </span>
       </div>
@@ -147,14 +147,14 @@ export const Dashboard: React.FC = () => {
         title="Consumption — last 8 periods"
         subtitle="m³ of water per house, per period"
       >
-        <div className="h-80">
+        <div className="h-64 sm:h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={consumptionData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5dfd2" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
+              <XAxis dataKey="date" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={60} />
+              <YAxis tick={{ fontSize: 10 }} />
               <Tooltip />
-              <Legend />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               <Bar dataKey="houseA" fill="#2d6a4f" name="House A" />
               <Bar dataKey="houseB" fill="#6a4a8c" name="House B" />
             </BarChart>
@@ -170,14 +170,14 @@ export const Dashboard: React.FC = () => {
       {/* Recent Cost & Cumulative Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <Card title="Cost split — recent bills">
-          <div className="h-80">
+          <div className="h-64 sm:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={costData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5dfd2" />
-                <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis dataKey="date" type="category" tick={{ fontSize: 11 }} width={80} />
+                <XAxis type="number" tick={{ fontSize: 10 }} />
+                <YAxis dataKey="date" type="category" tick={{ fontSize: 9 }} width={60} />
                 <Tooltip />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
                 <Bar dataKey="houseA" fill="#2d6a4f" name="House A" stackId="a" />
                 <Bar dataKey="houseB" fill="#6a4a8c" name="House B" stackId="a" />
               </BarChart>
@@ -186,14 +186,14 @@ export const Dashboard: React.FC = () => {
         </Card>
 
         <Card title="Cumulative cost per house">
-          <div className="h-80">
+          <div className="h-64 sm:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={cumulativeData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5dfd2" />
-                <XAxis dataKey="date" tick={{ fontSize: 11 }} angle={-45} textAnchor="end" height={60} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <XAxis dataKey="date" tick={{ fontSize: 9 }} angle={-45} textAnchor="end" height={60} />
+                <YAxis tick={{ fontSize: 10 }} />
                 <Tooltip />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
                 <Line
                   type="monotone"
                   dataKey="houseA"

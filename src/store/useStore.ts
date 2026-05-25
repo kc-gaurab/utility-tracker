@@ -65,16 +65,19 @@ export const useStore = create<Store>()((set, get) => ({
 
     // Subscribe to readings
     unsubscribeReadings = subscribeToReadings((readings) => {
+      console.log('Firebase readings synced:', readings.length, 'items');
       set({ readings, isFirebaseSynced: true });
     });
 
     // Subscribe to bills
     unsubscribeBills = subscribeToBills((bills) => {
+      console.log('Firebase bills synced:', bills.length, 'items');
       set({ bills, isFirebaseSynced: true });
     });
 
     // Subscribe to settlements
     unsubscribeSettlements = subscribeToSettlements((settlements) => {
+      console.log('Firebase settlements synced:', settlements.length, 'items');
       set({ settlements, isFirebaseSynced: true });
     });
   },

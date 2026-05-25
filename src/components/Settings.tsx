@@ -117,7 +117,7 @@ export const Settings: React.FC = () => {
           <p className="text-sm text-ink-mute mb-3">
             Upload seed data to Firebase to get started with sample readings, bills, and settlements.
           </p>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleSeedFirebase}
               disabled={isSeeding}
@@ -149,7 +149,7 @@ export const Settings: React.FC = () => {
           Export and import JSON backups for local storage.
         </p>
 
-        <div className="flex gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <button
             onClick={handleExport}
             className="px-4 py-2 bg-ink text-bg rounded font-medium text-sm hover:bg-accent transition"
@@ -172,7 +172,7 @@ export const Settings: React.FC = () => {
             className="hidden"
           />
 
-          <div className="flex-1"></div>
+          <div className="flex-1 hidden sm:block"></div>
 
           <button
             onClick={handleReset}
@@ -183,11 +183,11 @@ export const Settings: React.FC = () => {
         </div>
       </Card>
 
-      <details className="bg-surface border border-line rounded-md p-5 mb-3">
-        <summary className="cursor-pointer font-medium select-none">
+      <details className="bg-surface border border-line rounded-md p-4 sm:p-5 mb-3">
+        <summary className="cursor-pointer font-medium select-none text-sm sm:text-base">
           About the calculations
         </summary>
-        <div className="text-sm leading-relaxed mt-3 space-y-2">
+        <div className="text-xs sm:text-sm leading-relaxed mt-3 space-y-2">
           <p>
             <strong>Water bill split:</strong> For each period (between two readings), A's
             total water = A cold + A hot. B's total water = B cold + B hot, where B hot =
@@ -212,11 +212,11 @@ export const Settings: React.FC = () => {
         </div>
       </details>
 
-      <details className="bg-surface border border-line rounded-md p-5">
-        <summary className="cursor-pointer font-medium select-none">
+      <details className="bg-surface border border-line rounded-md p-4 sm:p-5">
+        <summary className="cursor-pointer font-medium select-none text-sm sm:text-base">
           How to verify calculations
         </summary>
-        <div className="text-sm leading-relaxed mt-3 space-y-2">
+        <div className="text-xs sm:text-sm leading-relaxed mt-3 space-y-2">
           <ol className="list-decimal list-inside space-y-2">
             <li>
               Go to the <strong>Readings</strong> tab and note the meter values for two

@@ -214,23 +214,25 @@ export const Bills: React.FC = () => {
             />
           </div>
 
-          <div className="flex gap-2 items-center">
-            <button
-              type="submit"
-              className="px-4 py-2 bg-ink text-bg rounded font-medium text-sm hover:bg-accent transition"
-            >
-              {isEditing ? 'Update bill' : 'Save bill'}
-            </button>
-            {isEditing && (
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <div className="flex gap-2">
               <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 bg-surface text-ink border border-line rounded font-medium text-sm hover:bg-surface-2 transition"
+                type="submit"
+                className="px-4 py-2 bg-ink text-bg rounded font-medium text-sm hover:bg-accent transition"
               >
-                Cancel edit
+                {isEditing ? 'Update bill' : 'Save bill'}
               </button>
-            )}
-            <span className="text-sm text-ink-mute italic ml-2">
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="px-4 py-2 bg-surface text-ink border border-line rounded font-medium text-sm hover:bg-surface-2 transition"
+                >
+                  Cancel edit
+                </button>
+              )}
+            </div>
+            <span className="text-xs sm:text-sm text-ink-mute italic">
               {isWater
                 ? 'Water bills are split by total water consumption (cold + hot) in the period.'
                 : 'Heating bills are split by space heating (A/B sub-meters) plus hot water consumption ratio.'}
@@ -246,8 +248,8 @@ export const Bills: React.FC = () => {
             <p>No bills yet.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <table className="w-full text-xs sm:text-sm min-w-[900px]">
               <thead className="bg-surface-2">
                 <tr>
                   <th className="text-left px-3 py-2 font-mono text-xs uppercase tracking-wider text-ink-soft border-b border-line">

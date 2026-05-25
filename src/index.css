@@ -14,8 +14,44 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent double-tap zoom on mobile */
+  touch-action: manipulation;
 }
 
 #root {
   min-height: 100vh;
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 640px) {
+  button {
+    min-height: 44px; /* iOS recommended touch target size */
+  }
+
+  input[type="date"],
+  input[type="number"],
+  input[type="text"],
+  select {
+    min-height: 44px;
+  }
+}
+
+/* Better scrollbar styling on mobile */
+@media (max-width: 640px) {
+  ::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
 }
