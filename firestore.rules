@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Only these Google accounts may access the data.
+    // Add housemates' emails to this list as needed, then redeploy:
+    //   npx firebase-tools deploy --only firestore:rules
+    function isHouseholdMember() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in [
+          'gaurabkecy89@gmail.com'
+        ];
+    }
+
+    match /readings/{date} {
+      allow read, write: if isHouseholdMember();
+    }
+    match /bills/{id} {
+      allow read, write: if isHouseholdMember();
+    }
+    match /settlements/{date} {
+      allow read, write: if isHouseholdMember();
+    }
+  }
+}

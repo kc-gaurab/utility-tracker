@@ -17,6 +17,7 @@ import {
 interface Store extends AppState {
   // Firebase sync state
   isFirebaseSynced: boolean;
+  syncError: string | null;
   setFirebaseSynced: (synced: boolean) => void;
 
   // Actions
@@ -37,6 +38,7 @@ interface Store extends AppState {
 
   // Firebase methods
   initializeFirebaseSync: () => void;
+  stopFirebaseSync: () => void;
   uploadLocalDataToFirebase: () => Promise<void>;
 }
 
@@ -53,6 +55,7 @@ let unsubscribeSettlements: (() => void) | null = null;
 export const useStore = create<Store>()((set, get) => ({
   ...initialState,
   isFirebaseSynced: false,
+  syncError: null,
 
   setFirebaseSynced: (synced: boolean) => set({ isFirebaseSynced: synced }),
 
@@ -63,23 +66,47 @@ export const useStore = create<Store>()((set, get) => ({
     if (unsubscribeBills) unsubscribeBills();
     if (unsubscribeSettlements) unsubscribeSettlements();
 
+    const handleSyncError = (error: Error) => {
+      console.error('Firebase sync error:', error);
+      const isPermissionDenied = error.message.includes('permission');
+      set({
+        isFirebaseSynced: false,
+        syncError: isPermissionDenied
+          ? 'Access denied — this Google account is not on the allowed list.'
+          : 'Sync failed — check your connection.',
+      });
+    };
+
+    set({ syncError: null });
+
     // Subscribe to readings
     unsubscribeReadings = subscribeToReadings((readings) => {
       console.log('Firebase readings synced:', readings.length, 'items');
-      set({ readings, isFirebaseSynced: true });
-    });
+      set({ readings, isFirebaseSynced: true, syncError: null });
+    }, handleSyncError);
 
     // Subscribe to bills
     unsubscribeBills = subscribeToBills((bills) => {
       console.log('Firebase bills synced:', bills.length, 'items');
-      set({ bills, isFirebaseSynced: true });
-    });
+      set({ bills, isFirebaseSynced: true, syncError: null });
+    }, handleSyncError);
 
     // Subscribe to settlements
     unsubscribeSettlements = subscribeToSettlements((settlements) => {
       console.log('Firebase settlements synced:', settlements.length, 'items');
-      set({ settlements, isFirebaseSynced: true });
-    });
+      set({ settlements, isFirebaseSynced: true, syncError: null });
+    }, handleSyncError);
+  },
+
+  // Stop Firebase sync (on sign-out)
+  stopFirebaseSync: () => {
+    if (unsubscribeReadings) unsubscribeReadings();
+    if (unsubscribeBills) unsubscribeBills();
+    if (unsubscribeSettlements) unsubscribeSettlements();
+    unsubscribeReadings = null;
+    unsubscribeBills = null;
+    unsubscribeSettlements = null;
+    set({ isFirebaseSynced: false, syncError: null });
   },
 
   // Upload local data to Firebase (useful for initial sync)

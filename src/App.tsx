@@ -5,18 +5,36 @@ import { Bills } from './components/Bills';
 import { Trends } from './components/Trends';
 import { Ledger } from './components/Ledger';
 import { Settings } from './components/Settings';
+import { SignIn } from './components/SignIn';
 import { useStore } from './store/useStore';
+import { useAuth } from './hooks/useAuth';
+import { signOutUser } from './firebase/authService';
 
 type Tab = 'dashboard' | 'readings' | 'bills' | 'trends' | 'ledger' | 'settings';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
-  const { initializeFirebaseSync, isFirebaseSynced } = useStore();
+  const { initializeFirebaseSync, stopFirebaseSync, isFirebaseSynced, syncError } = useStore();
+  const { user, loading } = useAuth();
 
-  // Initialize Firebase sync on mount
+  // Start Firebase sync once signed in, stop on sign-out
   useEffect(() => {
+    if (!user) return;
     initializeFirebaseSync();
-  }, [initializeFirebaseSync]);
+    return () => stopFirebaseSync();
+  }, [user, initializeFirebaseSync, stopFirebaseSync]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="text-sm text-ink-mute">Loading…</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <SignIn />;
+  }
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -40,15 +58,26 @@ function App() {
               House A & House B · water, heating & settlement
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-2 h-2 rounded-full ${
-                isFirebaseSynced ? 'bg-green-500' : 'bg-yellow-500'
-              }`}
-            />
-            <span className="text-xs text-gray-400 whitespace-nowrap">
-              {isFirebaseSynced ? 'Synced' : 'Connecting...'}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  syncError ? 'bg-red-500' : isFirebaseSynced ? 'bg-green-500' : 'bg-yellow-500'
+                }`}
+              />
+              <span className="text-xs text-gray-400 whitespace-nowrap">
+                {syncError ?? (isFirebaseSynced ? 'Synced' : 'Connecting...')}
+              </span>
+            </div>
+            <span className="text-xs text-gray-400 whitespace-nowrap hidden sm:inline">
+              {user.email}
             </span>
+            <button
+              onClick={() => signOutUser()}
+              className="text-xs text-gray-400 hover:text-bg underline whitespace-nowrap"
+            >
+              Sign out
+            </button>
           </div>
         </div>
       </header>

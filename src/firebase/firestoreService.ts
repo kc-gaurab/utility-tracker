@@ -33,14 +33,19 @@ export const deleteReading = async (date: string): Promise<void> => {
 };
 
 export const subscribeToReadings = (
-  callback: (readings: Reading[]) => void
+  callback: (readings: Reading[]) => void,
+  onError?: (error: Error) => void
 ): (() => void) => {
   const collectionRef = collection(db, COLLECTIONS.READINGS);
 
-  return onSnapshot(collectionRef, (snapshot: QuerySnapshot<DocumentData>) => {
-    const readings: Reading[] = snapshot.docs.map((doc) => doc.data() as Reading);
-    callback(readings);
-  });
+  return onSnapshot(
+    collectionRef,
+    (snapshot: QuerySnapshot<DocumentData>) => {
+      const readings: Reading[] = snapshot.docs.map((doc) => doc.data() as Reading);
+      callback(readings);
+    },
+    onError
+  );
 };
 
 // ============================================================================
@@ -58,14 +63,19 @@ export const deleteBill = async (id: string): Promise<void> => {
 };
 
 export const subscribeToBills = (
-  callback: (bills: Bill[]) => void
+  callback: (bills: Bill[]) => void,
+  onError?: (error: Error) => void
 ): (() => void) => {
   const collectionRef = collection(db, COLLECTIONS.BILLS);
 
-  return onSnapshot(collectionRef, (snapshot: QuerySnapshot<DocumentData>) => {
-    const bills: Bill[] = snapshot.docs.map((doc) => doc.data() as Bill);
-    callback(bills);
-  });
+  return onSnapshot(
+    collectionRef,
+    (snapshot: QuerySnapshot<DocumentData>) => {
+      const bills: Bill[] = snapshot.docs.map((doc) => doc.data() as Bill);
+      callback(bills);
+    },
+    onError
+  );
 };
 
 // ============================================================================
@@ -83,14 +93,19 @@ export const deleteSettlement = async (date: string): Promise<void> => {
 };
 
 export const subscribeToSettlements = (
-  callback: (settlements: Settlement[]) => void
+  callback: (settlements: Settlement[]) => void,
+  onError?: (error: Error) => void
 ): (() => void) => {
   const collectionRef = collection(db, COLLECTIONS.SETTLEMENTS);
 
-  return onSnapshot(collectionRef, (snapshot: QuerySnapshot<DocumentData>) => {
-    const settlements: Settlement[] = snapshot.docs.map((doc) => doc.data() as Settlement);
-    callback(settlements);
-  });
+  return onSnapshot(
+    collectionRef,
+    (snapshot: QuerySnapshot<DocumentData>) => {
+      const settlements: Settlement[] = snapshot.docs.map((doc) => doc.data() as Settlement);
+      callback(settlements);
+    },
+    onError
+  );
 };
 
 // ============================================================================
